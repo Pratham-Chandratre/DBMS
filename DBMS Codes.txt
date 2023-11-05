@@ -1,0 +1,335 @@
+-- Branch Table
+CREATE TABLE Branch (
+    branch_name VARCHAR(50) PRIMARY KEY,
+    branch_city VARCHAR(50),
+    assets DECIMAL(15, 2)
+);
+
+-- Account Table
+CREATE TABLE Account (
+    Acc_no INT PRIMARY KEY,
+    branch_name VARCHAR(50),
+    balance DECIMAL(15, 2),
+    FOREIGN KEY (branch_name) REFERENCES Branch(branch_name)
+);
+
+-- Customer Table
+CREATE TABLE Customer (
+    cust_name VARCHAR(50) PRIMARY KEY,
+    cust_street VARCHAR(100),
+    cust_city VARCHAR(50)
+);
+
+-- Depositor Table
+CREATE TABLE Depositor (
+    cust_name VARCHAR(50),
+    acc_no INT,
+    FOREIGN KEY (cust_name) REFERENCES Customer(cust_name),
+    FOREIGN KEY (acc_no) REFERENCES Account(Acc_no),
+    PRIMARY KEY (cust_name, acc_no)
+);
+
+-- Loan Table
+CREATE TABLE Loan (
+    loan_no INT PRIMARY KEY,
+    branch_name VARCHAR(50),
+    amount DECIMAL(15, 2),
+    FOREIGN KEY (branch_name) REFERENCES Branch(branch_name)
+);
+
+-- Borrower Table
+CREATE TABLE Borrower (
+    cust_name VARCHAR(50),
+    loan_no INT,
+    FOREIGN KEY (cust_name) REFERENCES Customer(cust_name),
+    FOREIGN KEY (loan_no) REFERENCES Loan(loan_no),
+    PRIMARY KEY (cust_name, loan_no)
+);
+
+Practical 1
+
+SELECT DISTINCT branch_name FROM Loan;
+
+SELECT loan_no
+FROM Loan
+WHERE branch_name = 'Akurdi' AND amount > 12000;
+
+
+SELECT C.cust_name, B.loan_no, L.amount
+FROM Customer C
+JOIN Borrower B ON C.cust_name = B.cust_name
+JOIN Loan L ON B.loan_no = L.loan_no;
+
+SELECT DISTINCT C.cust_name
+FROM Customer C
+JOIN Borrower B ON C.cust_name = B.cust_name
+JOIN Loan L ON B.loan_no = L.loan_no
+WHERE L.branch_name = 'Akurdi'
+ORDER BY C.cust_name;
+
+SELECT DISTINCT C.cust_name
+FROM Customer C
+LEFT JOIN Depositor D ON C.cust_name = D.cust_name
+LEFT JOIN Borrower B ON C.cust_name = B.cust_name
+WHERE D.cust_name IS NOT NULL OR B.cust_name IS NOT NULL;
+
+
+Practical 2
+
+SELECT D.cust_name
+FROM Depositor D
+INNER JOIN Borrower B ON D.cust_name = B.cust_name
+
+
+SELECT D.cust_name
+FROM Depositor D
+LEFT JOIN Borrower B ON D.cust_name = B.cust_name
+WHERE B.cust_name IS NULL
+
+SELECT AVG(balance) AS avg_balance
+FROM Account
+WHERE branch_name = 'Akurdi'
+
+SELECT AVG(balance) AS avg_balance
+FROM Account
+WHERE branch_name = 'Akurdi'
+
+SELECT branch_name, AVG(balance) AS avg_balance
+FROM Account
+GROUP BY branch_name
+
+SELECT branch_name, COUNT(cust_name) AS num_depositors
+FROM Depositor
+GROUP BY branch_name
+
+
+Practical 3
+
+SELECT branch_name
+FROM Account
+GROUP BY branch_name
+HAVING AVG(balance) > 12000;
+
+SELECT COUNT(*) AS total_tuples
+FROM Customer;
+
+SELECT SUM(amount) AS total_loan_amount
+FROM Loan;
+
+DELETE FROM Loan
+WHERE amount BETWEEN 1300 AND 1500;
+
+DELETE FROM Account
+WHERE branch_name IN (SELECT branch_name FROM Branch WHERE branch_city = 'Nigdi');
+
+DELETE FROM Branch
+WHERE branch_city = 'Nigdi';
+
+
+Practical 4
+
+-- Create Table cust_mstr
+CREATE TABLE cust_mstr (
+    cust_no INT PRIMARY KEY,
+    fname VARCHAR(50),
+    lname VARCHAR(50)
+);
+
+-- Create Table add_dets
+CREATE TABLE add_dets (
+    code_no INT PRIMARY KEY,
+    add1 VARCHAR(100),
+    add2 VARCHAR(100),
+    state VARCHAR(50),
+    city VARCHAR(50),
+    pincode INT
+);
+
+-- Retrieve the address of customer Fname as 'Ramesh' and Lname as 'Shinde'
+SELECT ad.add1, ad.add2, ad.state, ad.city, ad.pincode
+FROM cust_mstr cm
+JOIN add_dets ad ON cm.cust_no = ad.code_no
+WHERE cm.fname = 'Ramesh' AND cm.lname = 'Shinde';
+
+
+-- Create Table cust_mstr
+CREATE TABLE cust_mstr (
+    custno INT PRIMARY KEY,
+    fname VARCHAR(50),
+    lname VARCHAR(50)
+);
+
+-- Create Table acc_fd_cust_dets
+CREATE TABLE acc_fd_cust_dets (
+    codeno INT,
+    acc_fd_no INT
+);
+
+-- Create Table fd_dets
+CREATE TABLE fd_dets (
+    fd_sr_no INT PRIMARY KEY,
+    amt DECIMAL(15, 2)
+);
+
+-- List the customer holding fixed deposits of amount more than 5000
+SELECT cm.fname, cm.lname
+FROM cust_mstr cm
+JOIN acc_fd_cust_dets ac ON cm.custno = ac.codeno
+JOIN fd_dets fd ON ac.acc_fd_no = fd.fd_sr_no
+WHERE fd.amt > 5000;
+
+
+-- Create Table emp_mstr
+CREATE TABLE emp_mstr (
+    e_mpno INT PRIMARY KEY,
+    f_name VARCHAR(50),
+    l_name VARCHAR(50),
+    m_name VARCHAR(50),
+    dept VARCHAR(50),
+    desg VARCHAR(50),
+    branch_no INT
+);
+
+-- Create Table branch_mstr
+CREATE TABLE branch_mstr (
+    name VARCHAR(50),
+    b_no INT PRIMARY KEY
+);
+
+-- List the employee details along with branch names to which they belong
+SELECT em.f_name, em.l_name, em.dept, em.desg, bm.name AS branch_name
+FROM emp_mstr em
+JOIN branch_mstr bm ON em.branch_no = bm.b_no;
+
+
+Practical 5
+
+-- Account Table
+CREATE TABLE Account (
+    Acc_no INT PRIMARY KEY,
+    branch_name VARCHAR(50),
+    balance DECIMAL(15, 2),
+    FOREIGN KEY (branch_name) REFERENCES Branch(branch_name)
+);
+
+-- Branch Table
+CREATE TABLE Branch (
+    branch_name VARCHAR(50) PRIMARY KEY,
+    branch_city VARCHAR(50),
+    assets DECIMAL(15, 2)
+);
+
+
+-- Create a view selecting two columns from Account table
+CREATE VIEW AccountView AS
+SELECT Acc_no, balance FROM Account;
+
+-- Perform insert operation on the view
+INSERT INTO AccountView (Acc_no, balance) VALUES (101, 5000);
+
+-- Perform update operation on the view
+UPDATE AccountView SET balance = 6000 WHERE Acc_no = 101;
+
+-- Perform delete operation on the view
+DELETE FROM AccountView WHERE Acc_no = 101;
+
+-- Create a view by selecting one column from Account and Branch tables
+CREATE VIEW AccountBranchView AS
+SELECT Acc_no, branch_city
+FROM Account INNER JOIN Branch ON Account.branch_name = Branch.branch_name;
+
+-- Perform insert operation on the view
+INSERT INTO AccountBranchView (Acc_no, branch_city) VALUES (102, 'NewCity');
+
+-- Perform update operation on the view
+UPDATE AccountBranchView SET branch_city = 'OtherCity' WHERE Acc_no = 102;
+
+-- Perform delete operation on the view
+DELETE FROM AccountBranchView WHERE Acc_no = 102;
+
+-- Create an updatable view selecting two columns from Account table
+CREATE VIEW UpdatableAccountView AS
+SELECT Acc_no, balance FROM Account WITH CHECK OPTION;
+
+-- Perform insert operation on the updatable view
+INSERT INTO UpdatableAccountView (Acc_no, balance) VALUES (103, 7000);
+
+-- Perform update operation on the updatable view
+UPDATE UpdatableAccountView SET balance = 8000 WHERE Acc_no = 103;
+
+-- Perform delete operation on the updatable view
+DELETE FROM UpdatableAccountView WHERE Acc_no = 103;
+
+
+Practical 6
+
+Create a Table:
+create table stud1(roll_no number(5),attendance number(5),status varchar(7));
+Insert values in Table:
+Insert into stud1(roll_no, attendance) values(101, 80);
+Insert into stud1(roll_no, attendance) values(102, 65);
+Insert into stud1(roll_no, attendance) values(103, 92);
+Insert into stud1(roll_no, attendance) values(104, 55);
+Insert into stud1(roll_no, attendance) values(105, 98);
+
+SQL> Declare
+roll number(10);
+att number(10);
+Begin
+roll:=&roll;
+select attendance into att from stud1 where roll_no = roll;
+if att<75 then
+dbms_output.put_line(roll||'is detained');
+update stud1 set status='D' where roll_no=roll;
+else dbms_output.put_line(roll||'is not detained');
+update stud1 set status='ND' where roll_no=roll;
+end if;
+exception
+when no_data_found then dbms_output.put_line(roll||'not found');
+end;
+/
+
+Practical 7
+
+CREATE OR REPLACE PROCEDURE CalculateFine(
+    roll_no IN NUMBER,
+    name_of_book IN VARCHAR2
+) IS
+    v_date_of_issue DATE;
+    v_days_overdue NUMBER;
+    v_fine_amount NUMBER;
+BEGIN
+    -- Retrieve date of issue for the given book and roll number
+    SELECT DateofIssue INTO v_date_of_issue
+    FROM Borrower
+    WHERE Rollin = roll_no AND NameofBook = name_of_book;
+
+    -- Calculate the number of days overdue
+    v_days_overdue := TRUNC(SYSDATE - v_date_of_issue);
+
+    -- Calculate fine amount based on the number of days overdue
+    IF v_days_overdue BETWEEN 15 AND 30 THEN
+        v_fine_amount := v_days_overdue * 5;
+    ELSIF v_days_overdue > 30 THEN
+        v_fine_amount := v_days_overdue * 50;
+    ELSE
+        v_fine_amount := 0; -- No fine for less than 15 days
+    END IF;
+
+    -- Insert the fine details into the Fine table
+    INSERT INTO Fine (Roll_no, Date, Amt)
+    VALUES (roll_no, SYSDATE, v_fine_amount);
+
+    -- Display the calculated fine amount
+    DBMS_OUTPUT.PUT_LINE('Fine amount for book ' || name_of_book || ' is Rs ' || v_fine_amount);
+END;
+
+DECLARE
+    -- Define variables for input
+    roll_number NUMBER := 123; -- Provide the roll number
+    book_name VARCHAR2(100) := 'BookTitle'; -- Provide the name of the book
+
+BEGIN
+    -- Call the procedure
+    CalculateFine(roll_no => roll_number, name_of_book => book_name);
+END;
